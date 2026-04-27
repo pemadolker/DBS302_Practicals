@@ -204,8 +204,8 @@ The Attribute Pattern is one of MongoDB's most practical schema patterns for e-c
 
 # Mini Case Study – Product Attribute Pattern in MongoDB
 
-**DBS302 – Practical 3 mini case study**
-**Student:** Pema Dolker  
+**DBS302 – Practical 3 mini case study**     
+**Student:** Pema Dolker     
 **ID:** 02230294
 **Date:** April 23, 2026
 

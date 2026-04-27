@@ -6,7 +6,7 @@
 **Date:** April 23, 2026    
 **Course:** DBS302    
 
----
+
 
 ## Table of Contents
 
@@ -23,13 +23,13 @@
 11. [Common Mistakes and How I Avoided Them](#11-common-mistakes-and-how-i-avoided-them)
 12. [Conclusion](#12-conclusion)
 
----
+
 
 ## 1. Aim
 
 To design and implement an e-commerce platform schema using MongoDB, write advanced queries with the aggregation framework, and apply indexing and query analysis techniques to optimize performance for real-world workloads.
 
----
+
 
 ## 2. Objectives
 
@@ -39,7 +39,7 @@ To design and implement an e-commerce platform schema using MongoDB, write advan
 - Create and tune indexes (compound, text) to support common query patterns.
 - Use `explain()` to identify slow queries and verify the impact of optimizations.
 
----
+
 
 ## 3. Tools and Software Used
 
@@ -62,52 +62,53 @@ sudo systemctl status mongod
 mongosh
 ```
 
----
+
 
 ## 4. Theory Overview
 
 ### MongoDB Data Modeling
 
-MongoDB is a document-oriented NoSQL database that stores data as BSON (Binary JSON) documents. Unlike relational databases, MongoDB does not enforce a fixed schema, making it highly flexible for e-commerce product catalogs where different products can have different attributes.
+MongoDB is a NoSQL document store which uses BSON (Binary JSON) documents. MongoDB does not have a rigid schema, making it suitable for e-commerce product catalogs with variable product attributes.
 
 **Key principles applied in this practical:**
 
-- **Query-driven design:** The schema is shaped by the most frequent and performance-critical queries rather than normalization rules.
+- **Query-driven design:**  The schema is optimized for the most common and performance-sensitive queries rather than normalization rules.
 - **Embedding vs. Referencing:**
-  - **Embed** data that is always read together and bounded in size (e.g., order items inside an order document).
-  - **Reference** data that is shared across many documents or could grow without bound (e.g., product details referenced from orders by ID).
-- **Attribute Pattern:** Used in the `products` collection to store variable key-value attributes (brand, color, battery life, etc.) in a flexible sub-document, since different product categories have different properties.
+  - **Embed** data that are always accessed together and have a fixed size (e.g., items embedded in an order).
+  - **Reference** data that is reused across multiple documents or has potentially unlimited size (e.g., products referenced from orders by ID).
+- **Attribute Pattern:** Used in the `products` collection to store dynamic key-value attributes (brand, color, battery life, etc.) in a dynamic sub-document because different types of products have different attributes.
+
 
 ### Aggregation Framework
 
-The MongoDB Aggregation Pipeline processes documents through a sequence of stages. Each stage's output becomes the next stage's input.
+The MongoDB Aggregation Pipeline is a framework for processing documents. The output of one stage is used as input for the next stage.
 
 | Stage | Purpose |
 |-------|---------|
-| `$match` | Filters documents (like WHERE in SQL) |
-| `$group` | Groups documents and computes aggregates (like GROUP BY) |
-| `$project` | Reshapes documents, includes/excludes fields |
-| `$sort` | Orders documents |
-| `$limit` | Returns a fixed number of documents |
-| `$unwind` | Deconstructs array fields into separate documents |
-| `$lookup` | Performs a left outer join with another collection |
+| `$match` |filters documents (like WHERE in SQL) |
+| `$group` | groups documents and performs aggregation  (like GROUP BY) |
+| `$project` | transforms documents, includes/excludes fields |
+| `$sort` | orders documents |
+| `$limit` | returns a fixed number of documents |
+| `$unwind` | deconstructs array fields into separate documents |
+| `$lookup` |  does a left outer join to another collection |
 
 ### Indexing and Query Optimization
 
-Indexes allow MongoDB to find documents without scanning every document in a collection. Without indexes, MongoDB performs a **collection scan (COLLSCAN)** which is slow for large datasets.
+Indexes help MongoDB to search for documents without searching the entire collection. When there's no index, MongoDB does a `collection scan (COLLSCAN)` which is inefficient with a large number of records.
 
 **Index types used:**
 
-- **Compound index** – Index on multiple fields; ordering follows the ESR rule.
-- **Text index** – Enables full-text search across string fields.
-- **Multikey index** – Automatically created when indexing array fields (e.g., `tags`).
+- **Compound index** - Index on multiple fields; ordering follows the ESR rule.
+- **Text index** - Index on string fields for full text search.
+- **Multikey index** - Automatically created when indexing array fields (e.g., `tags`).
 
 **ESR Rule for compound indexes:**
 1. Fields used in **equality** filters come first.
 2. Fields used in **sort** come next.
 3. Fields used in **range** queries come last.
 
----
+
 
 ## 5. Problem Statement
 
@@ -118,7 +119,7 @@ Design and implement a MongoDB schema for a simplified e-commerce platform that 
 - Running analytics queries: daily sales totals, top products by revenue, average order value per customer, and orders filtered by status and date range.
 - Optimizing these queries using appropriate indexes and query analysis tools.
 
----
+
 
 ## 6. Schema Design
 
@@ -126,20 +127,20 @@ The e-commerce schema uses four collections:
 
 ```
 ecommerce (database)
-├── users        – Customer accounts
-├── categories   – Product categories (hierarchical)
-├── products     – Product catalog with flexible attributes
-└── orders       – Customer orders with embedded items
+├── users        - Customer accounts
+├── categories   - Product categories (hierarchical)
+├── products     - Product catalog with flexible attributes
+└── orders       - Customer orders with embedded items
 ```
 
 ### Design Decisions
 
 | Relationship | Choice | Reason |
 |---|---|---|
-| Order → Order Items | **Embedded** | Items are always read with the order; bounded in size |
-| Order → User | **Referenced** (userId) | Users exist independently; one user → many orders |
-| Order → Product | **Referenced** (productId) | Products change; historical price duplicated in order item for accuracy |
-| Product → Category | **Referenced** (categoryId) | One category → many products |
+| Order -> Order Items | **Embedded** | Items are always read with the order; bounded in size |
+| Order -> User | **Referenced** (userId) | Users exist independently; one user -> many orders |
+| Order -> Product | **Referenced** (productId) | Products change; historical price duplicated in order item for accuracy |
+| Product -> Category | **Referenced** (categoryId) | One category -> many products |
 
 ### Collection Schemas
 
@@ -208,7 +209,7 @@ ecommerce (database)
 }
 ```
 
----
+
 
 ## 7. Step-by-Step Implementation
 
@@ -227,7 +228,7 @@ db.createCollection("orders")
 
 ![Database and collections created](<Screenshot From 2026-04-22 10-25-06.png>)
 
----
+
 
 ### 7.2 Insert Sample Data
 
@@ -264,7 +265,7 @@ db.users.insertMany([
 
 ![Users inserted successfully](<Screenshot From 2026-04-22 10-25-27.png>)
 
----
+
 
 #### Insert Categories
 
@@ -278,7 +279,7 @@ db.categories.insertMany([
 ])
 ```
 
----
+
 
 #### Insert Products
 
@@ -329,7 +330,6 @@ db.products.insertMany([
 
 ![Products inserted, count verified as 3](<Screenshot From 2026-04-22 10-29-30.png>)
 
----
 
 #### Insert Orders
 
@@ -366,11 +366,11 @@ db.orders.insertMany([
 
 ![Orders inserted and verified with find().pretty()](<Screenshot From 2026-04-22 10-31-45.png>)
 
----
+
 
 ## 8. Aggregation Framework Queries
 
-### 8.1 Query 1 – Daily Sales Totals
+### 8.1 Query 1 - Daily Sales Totals
 
 **Goal:** Compute total revenue and order count per day for PAID orders.
 
@@ -408,9 +408,9 @@ db.orders.aggregate([
 
 ![Daily sales aggregation output](<Screenshot From 2026-04-22 10-32-09.png>)
 
----
 
-### 8.2 Query 2 – Top Products by Revenue
+
+### 8.2 Query 2 - Top Products by Revenue
 
 **Goal:** Find the top 5 products by total revenue across all PAID orders.
 
@@ -439,9 +439,9 @@ db.orders.aggregate([
 
 ![Top products by revenue output](<Screenshot From 2026-04-22 10-33-33.png>)
 
----
 
-### 8.3 Query 3 – Average Order Value per User
+
+### 8.3 Query 3 - Average Order Value per User
 
 **Goal:** Compute spending statistics per user, with user names joined from the `users` collection.
 
@@ -483,9 +483,9 @@ db.orders.aggregate([
 
 ![User order value statistics with $lookup](<Screenshot From 2026-04-22 10-35-35.png>)
 
----
 
-### 8.4 Query 4 – Product Catalog with Category Name
+
+### 8.4 Query 4 - Product Catalog with Category Name
 
 **Goal:** List all products enriched with their category name using `$lookup`.
 
@@ -510,13 +510,13 @@ db.products.aggregate([
 
 ![Product catalog with category names via $lookup](<Screenshot From 2026-04-22 10-35-59.png>)
 
----
+
 
 ## 9. Query Performance Optimization
 
 ### 9.1 Indexes Created
 
-#### Index 1 – Orders by User and Date
+#### Index 1 - Orders by User and Date
 
 ```js
 db.orders.createIndex(
@@ -527,9 +527,9 @@ db.orders.createIndex(
 
 Supports: `db.orders.find({ userId: <id> }).sort({ createdAt: -1 })`
 
----
 
-#### Index 2 – Orders by Status and Date (ESR Rule)
+
+#### Index 2 - Orders by Status and Date (ESR Rule)
 
 ```js
 db.orders.createIndex(
@@ -544,9 +544,9 @@ db.orders.createIndex(
 | Sort | `createdAt` | Sort direction |
 | Range | `grandTotal` | Optional range filter |
 
----
 
-#### Index 3 – Products by Category and Price
+
+#### Index 3 - Products by Category and Price
 
 ```js
 db.products.createIndex(
@@ -557,9 +557,9 @@ db.products.createIndex(
 
 Supports: `db.products.find({ categoryId: <id> }).sort({ price: 1 })`
 
----
 
-#### Index 4 – Text Search on Products
+
+#### Index 4 - Text Search on Products
 
 ```js
 db.products.createIndex(
@@ -584,9 +584,9 @@ db.products.find(
 
 ![Text search results](<Screenshot From 2026-04-22 10-43-26.png>)
 
----
 
-### 9.2 explain() Analysis – Before Index (COLLSCAN)
+
+### 9.2 explain() Analysis - Before Index (COLLSCAN)
 
 ```js
 db.orders.find(
@@ -604,9 +604,8 @@ db.orders.find(
 
 <!-- ![explain() output showing COLLSCAN before index](<Screenshot From 2026-04-22 10-44-20.png>) -->
 
----
 
-### 9.3 explain() Analysis – After Index (IXSCAN)
+### 9.3 explain() Analysis - After Index (IXSCAN)
 
 ```js
 db.orders.createIndex(
@@ -627,11 +626,11 @@ db.orders.find(
 
 **Observation:** With the index in place, MongoDB navigates the index tree directly to matching documents instead of scanning the whole collection, resulting in faster queries.
 
-![explain() output showing IXSCAN after index](Screenshot From 2026-04-22 10-44-54.png)
+![explain() output showing IXSCAN after index](<Screenshot From 2026-04-22 10-44-54.png>)
 
----
 
-### 9.4 Extended Demo – Aggregation with Index-Friendly Pipeline
+
+### 9.4 Extended Demo - Aggregation with Index-Friendly Pipeline
 
 ```js
 db.orders.aggregate([
@@ -652,11 +651,11 @@ db.orders.aggregate([
 ])
 ```
 
-When `$match` and `$sort` appear at the start of a pipeline and match an existing index (`{ status: 1, createdAt: -1 }`), MongoDB pushes them down to the query engine and uses the index — avoiding a collection scan even inside an aggregation pipeline.
+If the first two stages of an aggregation pipeline are `$match` and `$sort` and they match an index (`{ status: 1, createdAt: -1 }`), these two stages are pushed down to the query engine and the index is used - no collection scan is required, even within an aggregation pipeline.
 
 ![Aggregation pipeline using index efficiently](<Screenshot From 2026-04-22 10-46-14.png>)
 
----
+
 
 ## 10. Results and Observations
 
@@ -678,9 +677,9 @@ When `$match` and `$sort` appear at the start of a pipeline and match an existin
 | Keys examined | 0 | Equal to matched documents |
 | Execution time | Higher | Lower |
 
-Index creation significantly reduces documents examined. The performance gain grows as the collection size increases — with millions of documents, the difference between COLLSCAN and IXSCAN can be the difference between seconds and milliseconds.
 
----
+Index creation greatly reduces the number of documents examined. As more documents are added to the database, the performance improvement becomes more significant - the difference between COLLSCAN and IXSCAN can be the difference between seconds and milliseconds when there are millions of documents.
+
 
 ## 11. Common Mistakes and How I Avoided Them
 
@@ -693,18 +692,18 @@ Index creation significantly reduces documents examined. The performance gain gr
 | Over-indexing | Only indexed fields required by the most important query patterns |
 | Assuming queries use indexes without verifying | Used `explain("executionStats")` to confirm IXSCAN before and after index creation |
 
----
+
 
 ## 12. Conclusion
 
-This practical demonstrated the complete workflow for designing, implementing, and optimizing a MongoDB e-commerce schema.
+This practical demonstrated the end-to-end process for designing, building and fine-tuning a MongoDB e-commerce schema.
 
-**Schema Design** used a query-first approach. Embedding was chosen for order items (bounded and always read together) while referencing was used for users and products (shared entities with independent lifecycles). The Attribute Pattern in the `products` collection handles heterogeneous product specs cleanly without altering the collection schema per category.
+**Schema Design** used a query-first approach. Embedding was used for order items (bounded and always read with the order) and referencing was used for users and products (shared entities, not always read together). The Attribute Pattern in the `products` collection efficiently stores variable product specs without changing the collection schema for each type.
 
-**Aggregation Framework** — four multi-stage pipelines were built using `$match`, `$group`, `$project`, `$unwind`, `$lookup`, `$sort`, and `$limit`, producing daily sales totals, top product rankings, per-user spending stats, and an enriched product catalog.
+**Aggregation Framework** - four multi-stage pipelines were built using `$match`, `$group`, `$project`, `$unwind`, `$lookup`, `$sort`, and `$limit`, producing daily sales totals, top product rankings, per-user spending stats, and an enriched product catalog.
 
-**Indexing and Optimization** — four indexes were created. `explain("executionStats")` confirmed the transition from COLLSCAN to IXSCAN after index creation, proving the performance benefit.
+**Indexing and Optimization** -  a set of four indexes were built and an `explain("executionStats")` query showed that after index creation, the operation changed from a COLLSCAN to an IXSCAN, demonstrating the effectiveness of the indexes.
 
-MongoDB's flexible document model, powerful aggregation pipeline, and indexing system make it well-suited for e-commerce workloads that demand both flexible product catalogs and high-performance analytics.
+The flexibility of the document model, aggregation framework and indexing system make MongoDB a good fit for e-commerce applications that require flexible product catalogs and high-speed analytics.
 
----
+
