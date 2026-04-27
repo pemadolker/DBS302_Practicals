@@ -1,215 +1,11 @@
-<!-- # Mini Case Study – Product Attribute Pattern in MongoDB
-
-**DBS302 – Practical 3 mini case study**  
-**Student:** Pema Dolker   
-**ID:** 02230294
-
----
-
-## Overview
-
-Modern e-commerce platforms sell products from wildly different categories — electronics, clothing, furniture, food. The challenge is that each category has its own set of meaningful attributes:
-
-| Category | Relevant Attributes |
-|----------|-------------------|
-| Headphones | brand, color, wireless, battery life (hours) |
-| Clothing | size, color, material, fit |
-| Laptop | RAM (GB), storage (GB), processor, screen size |
-| Cable | brand, length (m), connector type, color |
-
-In a **relational database**, you would either create a separate table per category (schema explosion) or add dozens of nullable columns to a single product table (waste and confusion). Neither scales well.
-
-MongoDB's flexible schema allows a better approach: the **Attribute Pattern**.
-
----
-
-## What Is the Attribute Pattern?
-
-The Attribute Pattern stores variable product attributes as a nested sub-document (key-value map) inside the product document. Instead of fixed columns, each product carries only the attributes relevant to it.
-
-### Example: Three Products, Three Different Attribute Sets
-
-```js
-// Headphones – audio attributes
-{
-  _id: ObjectId("..."),
-  name: "Wireless Bluetooth Headphones",
-  categoryId: ObjectId("..."),
-  price: 129.99,
-  stock: 200,
-  attributes: {
-    brand: "Acme Audio",
-    color: "black",
-    wireless: true,
-    batteryLifeHours: 24
-  },
-  tags: ["audio", "wireless", "headphones"]
-}
-
-// Cable – physical attributes
-{
-  _id: ObjectId("..."),
-  name: "USB-C Cable 1m",
-  categoryId: ObjectId("..."),
-  price: 9.99,
-  stock: 500,
-  attributes: {
-    brand: "Acme Tech",
-    color: "white",
-    lengthMeters: 1
-  },
-  tags: ["cable", "usb-c"]
-}
-
-// Keyboard – input device attributes
-{
-  _id: ObjectId("..."),
-  name: "Mechanical Keyboard",
-  categoryId: ObjectId("..."),
-  price: 79.99,
-  stock: 150,
-  attributes: {
-    brand: "Acme Input",
-    layout: "US",
-    switchType: "blue",
-    backlight: true
-  },
-  tags: ["keyboard", "mechanical", "backlit"]
-}
-```
-
-Notice: the `attributes` field is different for every product type. MongoDB stores each document exactly as-is — no nullable columns, no schema migrations needed when a new attribute is introduced.
-
----
-
-## Querying the Attribute Pattern
-
-### Filter by a single attribute
-
-Find all black products:
-
-```js
-db.products.find({ "attributes.color": "black" })
-```
-
-Find all wireless products:
-
-```js
-db.products.find({ "attributes.wireless": true })
-```
-
-### Filter by multiple attributes (AND)
-
-Find black wireless products by a specific brand:
-
-```js
-db.products.find({
-  "attributes.brand": "Acme Audio",
-  "attributes.color": "black",
-  "attributes.wireless": true
-})
-```
-
-### Filter by category AND price range with attribute filter
-
-```js
-db.products.find({
-  categoryId: ObjectId("..."),     // Electronics
-  "attributes.backlight": true,
-  price: { $lte: 100 }
-}).sort({ price: 1 })
-```
-
-### Text search across name and tags
-
-```js
-db.products.find(
-  { $text: { $search: "wireless keyboard" } },
-  { score: { $meta: "textScore" }, name: 1, price: 1 }
-).sort({ score: { $meta: "textScore" } })
-```
-
-This returns products matching either "wireless" or "keyboard", ranked by how well they match.
-
----
-
-## Indexing Attribute Fields
-
-For attributes that are queried frequently, you can add an index directly on the nested field:
-
-```js
-// Index on brand (frequently filtered)
-db.products.createIndex(
-  { "attributes.brand": 1 },
-  { name: "idx_products_brand" }
-)
-
-// Compound: category + brand + price (covers a common query pattern)
-db.products.createIndex(
-  { categoryId: 1, "attributes.brand": 1, price: 1 },
-  { name: "idx_products_category_brand_price" }
-)
-```
-
-**Verify the indexes work:**
-
-```js
-db.products.find({
-  categoryId: ObjectId("..."),
-  "attributes.brand": "Acme Audio"
-}).explain("executionStats")
-// Should show IXSCAN, not COLLSCAN
-```
-
----
-
-## Trade-offs to Consider
-
-| Benefit | Trade-off |
-|---------|-----------|
-| No schema migrations when adding new attributes | Cannot enforce required attributes at the database level without application validation |
-| Each product stores only relevant fields — no nulls | Attributes are untyped; `batteryLifeHours: "24"` (string) vs `24` (number) both valid |
-| Flexible for diverse product catalogs | Querying across all products for a rare attribute is less efficient without an index |
-| Adding a new index on an attribute is non-breaking | Too many attribute indexes increases write overhead and storage |
-
----
-
-## When to Use the Attribute Pattern
-
-**Use it when:**
-- Products belong to different categories with different specs.
-- You frequently add new product types without wanting to alter the schema.
-- Attributes per product are bounded (not growing infinitely — that would need a different approach).
-
-**Avoid it when:**
-- All products share the exact same fixed set of attributes (use regular fields instead — they are clearer and easier to index).
-- You need strict type enforcement per attribute at the database level.
-
----
-
-## Summary
-
-The Attribute Pattern is one of MongoDB's most practical schema patterns for e-commerce. It replaces the "one giant table with hundreds of nullable columns" anti-pattern from relational databases with a clean, flexible sub-document that stores only what each product actually needs. Combined with targeted indexing on frequently queried attribute fields, it provides both flexibility and query performance.
-
----
-
-*DBS302 – Practical 3 Mini Case Study*
-*Student: Pema Dolker | ID: 02230294*
-
-
-
- -->
-
-
 
 # Mini Case Study – Product Attribute Pattern in MongoDB
 
-**DBS302 – Practical 3 mini case study**     
-**Student:** Pema Dolker     
-**ID:** 02230294
-**Date:** April 23, 2026
+**DBS302 – Practical 3 mini case study**       
+**Student:** Pema Dolker       
+**ID:** 02230294   
+**Date:** April 23, 2026  
 
----
 
 ## Table of Contents
 
@@ -230,7 +26,8 @@ The Attribute Pattern is one of MongoDB's most practical schema patterns for e-c
 
 ## 1. Overview
 
-Modern e-commerce platforms sell products from wildly different categories — electronics, clothing, furniture, food. Each category has its own set of meaningful attributes:
+Today's e-commerce sites offer products from all sorts of categories - electronics, apparel, furnishings, groceries. Each product type has relevant attributes:
+
 
 | Category | Relevant Attributes |
 |----------|-------------------|
@@ -239,7 +36,7 @@ Modern e-commerce platforms sell products from wildly different categories — e
 | Laptop | RAM, storage, processor, screen size |
 | Cable | brand, length, connector type, color |
 
-In a **relational database**, handling this would require either a separate table per category (schema explosion) or dozens of nullable columns in one product table. Neither scales well.
+In a **relational database**, this would be handled either through a table per product category (schema explosion) or perhaps 100 nullable columns for an individual product table. Neither scales well.
 
 MongoDB's flexible schema solves this with the **Attribute Pattern** — storing variable attributes as a nested sub-document that only contains what each product actually needs.
 
@@ -247,9 +44,9 @@ MongoDB's flexible schema solves this with the **Attribute Pattern** — storing
 
 ## 2. What Is the Attribute Pattern?
 
-The Attribute Pattern stores variable product-specific properties as a nested key-value sub-document called `attributes`. Each product carries only the fields relevant to it — no nulls, no unused columns.
+The Attribute Pattern uses a nested key-value sub-document, named `attributes` to store variable product-specific values. The products only bring along the fields they need - no nulls, no empty columns.
 
-The three products in this practical demonstrate this clearly: the headphones, cable, and keyboard each have a completely different `attributes` shape inside the same collection.
+This practical showcases this with the three products: the headphones, cable and keyboard each have a different shape of the `attributes` object stored within the same collection.
 
 ```js
 // Headphones – audio-specific attributes
@@ -294,11 +91,11 @@ The three products in this practical demonstrate this clearly: the headphones, c
 }
 ```
 
----
+
 
 ## 3. Querying the Attribute Pattern
 
-MongoDB uses **dot notation** to query into nested sub-documents. This means `attributes.color` or `attributes.brand` work as query fields just like any top-level field.
+MongoDB uses **dot notation** to query into nested sub-documents. So, the fields `attributes.color` or `attributes.brand` can be queried like any other field.
 
 ### Query 1 – Filter by a single attribute
 
@@ -311,7 +108,7 @@ db.products.find({
 })
 ```
 
-This query combines two attribute conditions as an AND filter — only the Wireless Bluetooth Headphones matches both.
+This query has an AND combination of two attribute filters, only the Wireless Bluetooth Headphones match.
 
 ![Single and multi-attribute filter — only the black Acme Audio headphones returned](<Screenshot From 2026-04-22 10-46-27-1.png>)
 
@@ -344,14 +141,15 @@ db.orders.aggregate([
 ])
 ```
 
-With the `{ status: 1, createdAt: -1 }` index in place, the `$match` and `$sort` at the top of the pipeline are pushed down to the query engine and use the index — making the aggregation efficient even under high-volume workloads.
+With the `{ status: 1, createdAt: -1 }` index, the `$match` and `$sort` at the beginning of the aggregation pipeline are pushed down to the query engine and use the index - making this aggregation fast even with a high throughput.
 
 ![Index-friendly aggregation pipeline output and attribute filter result](<Screenshot From 2026-04-22 10-46-14-1.png>)
 ---
 
 ## 4. Indexing Attribute Fields
 
-For attributes that are queried frequently, you can add indexes directly on the nested field using dot notation. This is the key advantage of the Attribute Pattern over alternative approaches — MongoDB treats nested fields as first-class index targets.
+If there are attributes that are commonly filtered, you can index the attribute as a nested field in dot-notation. This is where the Attribute Pattern shines compared to other patterns - MongoDB supports indexing on nested fields.
+
 
 ```js
 // Compound index on brand + color (common filter combination in a storefront)
@@ -365,7 +163,8 @@ db.products.createIndex(
 
 
 
-This index supports queries that filter by brand alone, or by brand and color together (prefix rule). Queries filtering only by color cannot use this index efficiently — the field order matters.
+This index can be used for queries filtering by brand, or by brand and color (prefix rule). It cannot be used for filtering by color only - field order is important.
+
 
 ---
 
@@ -456,11 +255,11 @@ db.reviews.aggregate([
 ```
 
 **Pipeline explanation:**
-- `$group` — Groups all reviews by `productId`, computing average, count, min and max of the `rating` field.
-- `$lookup` — Joins with `products` to get the product name from its `_id`.
-- `$unwind` — Unwraps the single-element array returned by `$lookup` into a plain object.
-- `$project` — Formats the output, rounding `averageRating` to 2 decimal places.
-- `$sort` — Returns highest-rated products first.
+- `$group` - Aggregates all reviews by its `productId`, calculating the average, count, minimum and maximum of the `rating` field.
+- `$lookup` - Joins with `products` to get the product name from its `_id`.
+- `$unwind` - Flattens single-item array returned by `$lookup` to plain object..
+- `$project` - FFormats the result, rounding up `averageRating` to 2 decimal places.
+- `$sort` - Sorts products by highest rating.
 
 ![Average rating per product: Headphones 4.5, Keyboard 4.0](<Screenshot From 2026-04-22 10-47-38.png>)  
 
@@ -472,7 +271,8 @@ db.reviews.aggregate([
 
 **Goal:** Find products with low stock (stock < 10), enriched with category name.
 
-First, the Mechanical Keyboard's stock was manually reduced to 7 to simulate a low-stock scenario:
+First, the stock of the Mechanical Keyboard was set to 7 to create a low-stock product:
+
 
 ```js
 db.products.updateOne(
@@ -512,10 +312,10 @@ db.products.aggregate([
 ```
 
 **Pipeline explanation:**
-- `$match` — Filters only products where `stock` is below 10, reducing the working set early.
-- `$lookup` — Joins with `categories` to enrich each result with the category name.
-- `$project` — Selects only the fields useful for a stock alert report.
-- `$sort` — Returns the most urgent (lowest stock) first.
+- `$match`  - Limits to products with stock under 10, filtering early.
+- `$lookup` - Joins with `categories` to enrich each result with the category name.
+- `$project` - Restrains the results to only those needed for a stock alert report.
+- `$sort` -  Sorts by the most urgent (lowest stock first).
 
 ![Low stock result: Mechanical Keyboard, stock 7, category Electronics](<Screenshot From 2026-04-22 10-48-53.png>)
 
@@ -578,13 +378,13 @@ db.orders.aggregate([
 ```
 
 **Pipeline explanation:**
-- `$group` — Sums all PAID order totals per user.
-- `$addFields` with `$switch` — Evaluates the tier condition in order: Gold first (≥200), then Silver (≥100), then Bronze as the default.
-- `$lookup` — Joins with `users` to get user names for display.
+- `$group` - Sums all PAID order totals per user.
+- `$addFields` with `$switch` - Checks the tier condition in the following order: first Gold (≥200), then Silver (≥100), then the default Bronze.
+- `$lookup` - Joins with `users` to get user names for display.
 
 ![Customer tiers computed: Tashi Dorji = Gold ($269.97), Sonam Choden = Bronze ($79.99)](<Screenshot From 2026-04-22 10-49-11.png>)
 
-#### Step 2 – Write tiers back to the users collection using $merge
+#### Step 2 - Write tiers back to the users collection using $merge
 
 ```js
 db.orders.aggregate([
@@ -619,7 +419,11 @@ db.orders.aggregate([
 ])
 ```
 
-`$merge` writes the pipeline output back into the `users` collection. `whenMatched` updates the existing user document by adding/updating the `tier` and `totalSpent` fields. `whenNotMatched: "discard"` safely ignores any user IDs not found in `users`.
+`$merge` inserts the results of the pipeline back into users. `whenMatched` adds or updates a user with the tier and totalSpent values. `whenNotMatched: "discard"` safely skips over any user IDs not in users.
+
+
+
+
 
 ![$merge pipeline writing tier and totalSpent back to users collection](<Screenshot From 2026-04-22 10-49-29.png>)
 
@@ -631,7 +435,7 @@ db.users.find({}, { name: 1, tier: 1, totalSpent: 1 })
 
 ![Users now have tier and totalSpent fields: Tashi = Gold, Sonam = Bronze](<Screenshot From 2026-04-22 10-49-44.png>)
 
-**Result:** Both user documents now carry their computed tier and total spend — Tashi Dorji is **Gold** ($269.97) and Sonam Choden is **Bronze** ($79.99).
+**Result:** The users now have their calculated tier and totalSpent included - Tashi Dorji is Gold ($269.97) and Sonam Choden is Bronze ($79.99).
 
 ---
 
@@ -690,7 +494,7 @@ db.products.find(
 
 ![explain() IXSCAN with single-field index: uses index for categoryId but still fetches all matching docs for price filter](<Screenshot From 2026-04-22 11-06-15.png>)
 
-**Observation:** The query now uses `IXSCAN` on `categoryId` — it narrows to Electronics products via the index. However, the price filter and sort must be applied after fetching documents (`FETCH` stage), because the index doesn't include `price`. This is better than COLLSCAN but not optimal.
+**Observation:** The query uses IXSCAN on categoryId - it finds Electronics products using the index. But it needs to apply the price and sort after retrieving the documents (FETCH), because price isn't in the index. This is an improvement from COLLSCAN but not ideal.
 
 ---
 
@@ -718,7 +522,8 @@ db.products.find(
 | `totalKeysExamined` | 1 |
 | `executionTimeMillis` | 4 ms |
 
-**Observation:** With the compound index, MongoDB navigates directly to Electronics products priced ≤ $100 — examining only 1 document. The rejected plan in the output even shows the single-field index being considered and discarded in favour of the better compound index.
+**Observation:** With this new compound index, MongoDB will skip straight to Electronics products for which the price is ≤ $100 - only 1 document. The output even shows the single-field index being considered, but rejected, in favour of the compound index.
+
 
 ### Comparison Summary
 
@@ -767,7 +572,7 @@ db.products.createIndex(
 )
 ```
 
-The weights control relevance scoring: a match in `name` is worth 10 points, in `tags` 5 points, and in `description` 3 points. This means a product whose name contains the search term always outranks one where only the description matches.
+The weights determine the relevance: 10 points for a match in the `name`, 5 points in  `tags` and 3 points in `description`. So a product with the search term in its name always scores more highly than one with just a description match.
 
 #### Step 3 – Test searches
 
@@ -794,9 +599,9 @@ db.products.find(
 ![Extended text index created; three searches returning results ranked by relevance score](<Screenshot From 2026-04-22 11-08-53.png>)
 
 **Observations:**
-- **Search 1 ("wireless")** — Headphones returned with high score because "wireless" appears in both the `name` (weight 10) and `tags` (weight 5).
-- **Search 2 ("noise cancellation")** — Headphones returned via the `description` match (weight 3), proving the extended index works even on terms not in the name or tags.
-- **Search 3 ("mechanical backlight")** — Mechanical Keyboard returned with score **15.875**, matching both `name` (weight 10) and `tags`/`description` (weights 5 and 3).
+- **Search 1 ("wireless")** - Headphones returned with high score, as "wireless" is in the name (weight 10) and tags (weight 5).
+- **Search 2 ("noise cancellation")** - Headphones returned with a match in description (weight 3), demonstrating the extended index can match terms not in name or tags.
+- **Search 3 ("mechanical backlight")** - Mechanical Keyboard with score 15.875 via name (weight 10) and tags/description (weights 5 and 3).
 
 ---
 
@@ -804,11 +609,12 @@ db.products.find(
 
 | Benefit | Trade-off |
 |---------|-----------|
-| No schema migrations when new attribute types are added | Cannot enforce required attributes at DB level — validation must happen in the application |
-| Each product stores only relevant fields — no nulls | Attributes are untyped; `batteryLifeHours: "24"` (string) and `24` (number) are both valid |
-| Flexible for diverse product catalogs | Querying a rare attribute across many products is slow without a dedicated index |
-| New attribute indexes are non-breaking changes | Too many attribute indexes increases write overhead and index storage size |
-| `$text` index enables rich product search with weighted relevance | Only one text index per collection; adding fields requires dropping and recreating |
+| No migrations when adding new attribute types | Can't enforce required attributes at database level - must be done in the application |
+| No nulls - only relevant fields for each product | Attributes are untyped; batteryLifeHours: "24" (string) and 24 (number) are both valid |
+| Adapts to different product catalogs | Querying on a seldomly-used attribute for many products is slow without an index
+| New product attributes are backwards-compatible | Many attribute indexes leads to higher write costs and index size |
+| $text index supports rich product search with query relevance | One text index per collection; fields can only be added by dropping and recreating the index |
+
 
 ---
 
